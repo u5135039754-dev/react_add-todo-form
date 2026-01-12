@@ -1,27 +1,96 @@
 import './App.scss';
 
-// import usersFromServer from './api/users';
-// import todosFromServer from './api/todos';
+import usersFromServer from './api/users';
+import todosFromServer from './api/todos';
+import { useState } from 'react';
+import { Todo } from './types/todo';
+import { User } from './types/user';
+import { TodoList } from './components/TodoList';
 
 export const App = () => {
+  const [todos, setTodo] = useState<Todo[]>(todosFromServer);
+  const [users] = useState<User[]>(usersFromServer);
+  const [title, setTitle] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState<number | ''>('');
+  const [isTitle, setIsTitle] = useState(true);
+  const [isUser, setIsUser] = useState(true);
+
+  // const isFormValid = [todo, users].every(value => value.trim() !== '');
+
+  const onSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (title.trim() !== '' && selectedUserId !== '') {
+      const newId = Math.max(...todos.map(t => t.id), 0) + 1;
+      const user = users.find(u => u.id === selectedUserId)!;
+      const newTodo: Todo = {
+        id: newId,
+        title: title.trim(),
+        userId: user.id,
+        completed: false,
+        user,
+      };
+
+      setTodo([...todos, newTodo]);
+      setTitle('');
+      setSelectedUserId('');
+    }
+
+    if (selectedUserId === '') {
+      setIsUser(false);
+
+      return;
+    }
+  };
+
   return (
     <div className="App">
       <h1>Add todo form</h1>
 
-      <form action="/api/todos" method="POST">
+      <form onSubmit={onSubmit}>
         <div className="field">
-          <input type="text" data-cy="titleInput" />
-          <span className="error">Please enter a title</span>
+          <input
+            required
+            value={title}
+            type="text"
+            placeholder="Enter a title"
+            data-cy="titleInput"
+            onChange={e => {
+              const value = e.target.value.replace(
+                /[^a-zA-Zа-яА-ЯёЁіІїЇєЄ0-9 ]/g,
+                '',
+              );
+
+              setTitle(value);
+              setIsTitle(true);
+            }}
+          />
+          {!isTitle && <span className="error">Please enter a title</span>}
         </div>
 
         <div className="field">
-          <select data-cy="userSelect">
-            <option value="0" disabled>
+          <select
+            value={selectedUserId}
+            onChange={e => {
+              setSelectedUserId(
+                e.target.value === '' ? '' : Number(e.target.value),
+              );
+              setIsUser(true);
+            }}
+            data-cy="userSelect"
+          >
+            <option value="" disabled>
               Choose a user
             </option>
+
+            {users.map(user => (
+              <option key={user.id} value={user.id}>
+                {user.name}
+              </option>
+            ))}
           </select>
 
-          <span className="error">Please choose a user</span>
+          {isUser && <span className="error">Please choose a user</span>}
         </div>
 
         <button type="submit" data-cy="submitButton">
@@ -29,33 +98,7 @@ export const App = () => {
         </button>
       </form>
 
-      <section className="TodoList">
-        <article data-id="1" className="TodoInfo TodoInfo--completed">
-          <h2 className="TodoInfo__title">delectus aut autem</h2>
-
-          <a className="UserInfo" href="mailto:Sincere@april.biz">
-            Leanne Graham
-          </a>
-        </article>
-
-        <article data-id="15" className="TodoInfo TodoInfo--completed">
-          <h2 className="TodoInfo__title">delectus aut autem</h2>
-
-          <a className="UserInfo" href="mailto:Sincere@april.biz">
-            Leanne Graham
-          </a>
-        </article>
-
-        <article data-id="2" className="TodoInfo">
-          <h2 className="TodoInfo__title">
-            quis ut nam facilis et officia qui
-          </h2>
-
-          <a className="UserInfo" href="mailto:Julianne.OConner@kory.org">
-            Patricia Lebsack
-          </a>
-        </article>
-      </section>
+      <TodoList todos={todos} users={[]} />
     </div>
   );
 };
