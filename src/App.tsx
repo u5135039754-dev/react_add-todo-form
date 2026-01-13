@@ -4,12 +4,11 @@ import usersFromServer from './api/users';
 import todosFromServer from './api/todos';
 import { useState } from 'react';
 import { Todo } from './types/todo';
-import { User } from './types/user';
 import { TodoList } from './components/TodoList';
 
 export const App = () => {
   const [todos, setTodo] = useState<Todo[]>(todosFromServer);
-  const [users] = useState<User[]>(usersFromServer);
+  const [users] = useState(usersFromServer);
   const [title, setTitle] = useState('');
   const [selectedUserId, setSelectedUserId] = useState<number | ''>('');
   const [isTitle, setIsTitle] = useState(true);
@@ -19,9 +18,8 @@ export const App = () => {
 
   const onSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-
     if (title.trim() !== '' && selectedUserId !== '') {
-      const newId = Math.max(...todos.map(t => t.id), 0) + 1;
+      const newId = Math.max(...todos.map(todo => todo.id), 0) + 1;
       const user = users.find(u => u.id === selectedUserId)!;
       const newTodo: Todo = {
         id: newId,
@@ -42,6 +40,26 @@ export const App = () => {
       return;
     }
   };
+
+  // const onSubmit = (event: React.FormEvent) => {
+  //   event.preventDefault();
+  //   let valid = true;
+
+  //   if (title.trim() === '') {
+  //     setIsTitle(false);
+  //     valid = false;
+  //   }
+
+  //   if (selectedUserId === '') {
+  //     setIsUser(false);
+  //     valid = false;
+  //   }
+
+  //   if (!valid) {
+  //     return;
+  //   }
+  //   // ... rest of your code to add todo
+  // };
 
   return (
     <div className="App">
@@ -90,7 +108,7 @@ export const App = () => {
             ))}
           </select>
 
-          {isUser && <span className="error">Please choose a user</span>}
+          {!isUser && <span className="error">Please choose a user</span>}
         </div>
 
         <button type="submit" data-cy="submitButton">
@@ -98,7 +116,7 @@ export const App = () => {
         </button>
       </form>
 
-      <TodoList todos={todos} users={[]} />
+      <TodoList todos={todos} users={users} />
     </div>
   );
 };
