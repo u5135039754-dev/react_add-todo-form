@@ -14,52 +14,38 @@ export const App = () => {
   const [isTitle, setIsTitle] = useState(true);
   const [isUser, setIsUser] = useState(true);
 
-  // const isFormValid = [todo, users].every(value => value.trim() !== '');
-
   const onSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (title.trim() !== '' && selectedUserId !== '') {
-      const newId = Math.max(...todos.map(todo => todo.id), 0) + 1;
-      const user = users.find(u => u.id === selectedUserId)!;
-      const newTodo: Todo = {
-        id: newId,
-        title: title.trim(),
-        userId: user.id,
-        completed: false,
-        user,
-      };
+    let valid = true;
 
-      setTodo([...todos, newTodo]);
-      setTitle('');
-      setSelectedUserId('');
+    if (title.trim() === '') {
+      setIsTitle(false);
+      valid = false;
     }
 
     if (selectedUserId === '') {
       setIsUser(false);
+      valid = false;
+    }
 
+    if (!valid) {
       return;
     }
+
+    const newId = Math.max(...todos.map(todo => todo.id), 0) + 1;
+    const user = users.find(u => u.id === selectedUserId)!;
+    const newTodo: Todo = {
+      id: newId,
+      title: title.trim(),
+      userId: user.id,
+      completed: false,
+      user,
+    };
+
+    setTodo([...todos, newTodo]);
+    setTitle('');
+    setSelectedUserId('');
   };
-
-  // const onSubmit = (event: React.FormEvent) => {
-  //   event.preventDefault();
-  //   let valid = true;
-
-  //   if (title.trim() === '') {
-  //     setIsTitle(false);
-  //     valid = false;
-  //   }
-
-  //   if (selectedUserId === '') {
-  //     setIsUser(false);
-  //     valid = false;
-  //   }
-
-  //   if (!valid) {
-  //     return;
-  //   }
-  //   // ... rest of your code to add todo
-  // };
 
   return (
     <div className="App">
@@ -89,9 +75,9 @@ export const App = () => {
         <div className="field">
           <select
             value={selectedUserId}
-            onChange={e => {
+            onChange={event => {
               setSelectedUserId(
-                e.target.value === '' ? '' : Number(e.target.value),
+                event.target.value === '' ? '' : Number(event.target.value),
               );
               setIsUser(true);
             }}
